@@ -17,8 +17,14 @@ sudo mkdir -p $PROJECTS_DIR/static $PROJECTS_DIR/media
 sudo chown -R $NEW_USER:$NEW_USER $PROJECTS_DIR
 sudo chmod -R 755 $PROJECTS_DIR
 
+# Make sure the user has full permissions to the project directory
+# This allows them to edit, delete, and create files as needed
+sudo chmod -R u+rwX $PROJECTS_DIR
+sudo chown -R $NEW_USER:www-data  $PROJECTS_DIR
+
 # Install required packages
 sudo apt install -y python3 python3-venv python3-pip nginx git ufw mysql-server
+sudo apt install -y libmysqlclient-dev pkg-config
 
 # Secure MySQL installation
 sudo mysql_secure_installation
@@ -91,6 +97,7 @@ source $PROJECTS_DIR/venv/bin/activate
 if [ -f "$PROJECTS_DIR/requirements.txt" ]; then
     pip install --no-cache-dir -r "$PROJECTS_DIR/requirements.txt"
 fi
+pip install gunicorn
 deactivate
 
 # Create Gunicorn service file
@@ -115,6 +122,13 @@ EOL
 sudo systemctl daemon-reload
 sudo systemctl enable $NEW_USER-gunicorn
 sudo systemctl start $NEW_USER-gunicorn
+
+# Add user to sudoers with specific commands
+echo "$NEW_USER ALL=(ALL) NOPASSWD: /usr/bin/apt, /usr/bin/apt-get, /usr/bin/nano, /usr/bin/systemctl" | sudo tee -a /etc/sudoers
+
+# Set SSH to allow password authentication for user "param_new"
+sudo sed -i '/^PasswordAuthentication/c\PasswordAuthentication yes' /etc/ssh/sshd_config
+sudo systemctl restart sshd
 
 # Print completion message
 echo "Setup completed successfully!"
