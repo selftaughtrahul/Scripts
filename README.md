@@ -19,7 +19,7 @@ Clone or Download the Script:
 
 bash
 Copy code
-git clone https://github.com/yourusername/yourrepository.git
+git clone (https://github.com/selftaughtrahul/Scripts.git)
 Run the Script:
 
 bash
